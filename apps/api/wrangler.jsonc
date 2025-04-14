@@ -1,0 +1,63 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "neostack-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "keep_vars": true,
+  "env": {
+    "local": {
+      "ai": {
+        "binding": "AI",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "fa57d5af4d834aba938051235f0d7484",
+          "localConnectionString": "postgresql://postgres:mysecretpassword@localhost:5432/postgres",
+        },
+      ],
+    },
+    "development": {
+      "ai": {
+        "binding": "AI",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "fa57d5af4d834aba938051235f0d7484",
+        },
+      ],
+      "routes": [
+        {
+          "pattern": "development-api.stack.neoprint3d.dev",
+          "custom_domain": true,
+        },
+      ],
+    },
+    "production": {
+      "ai": {
+        "binding": "AI",
+      },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "fa57d5af4d834aba938051235f0d7484",
+        },
+      ],
+      "routes": [
+        {
+          "pattern": "production-api.stack.neoprint3d.dev",
+          "custom_domain": true,
+        },
+      ],
+    },
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "dev": {
+    "port": 8080,
+  },
+}

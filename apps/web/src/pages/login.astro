@@ -1,0 +1,12 @@
+---
+import { PagesLogin } from "@/components/PagesLogin";
+import Layout from "@/layouts/Layout.astro";
+
+if (Astro.locals.auth) {
+  return Astro.redirect("/settings/profile");
+}
+---
+
+<Layout>
+  <PagesLogin client:load />
+</Layout>

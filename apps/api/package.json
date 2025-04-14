@@ -1,0 +1,21 @@
+{
+  "name": "@neo-stack/api",
+  "scripts": {
+    "local:tsc": "tsc -p tsconfig.build.json --watch",
+    "local:dev": "wrangler dev --test-scheduled --env local",
+    "deploy": "wrangler deploy --minify --env production",
+    "auth:generate": "npx @better-auth/cli generate --config ./src/lib/auth.ts --output ../../packages/database/src/schema/auth.ts"
+  },
+  "dependencies": {
+    "@better-auth/stripe": "^1.2.7",
+    "@neo-stack/database": "workspace:*",
+    "better-auth": "^1.2.7",
+    "hono": "^4.7.6",
+    "stripe": "^18.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.4.0"
+  }
+}

@@ -1,0 +1,34 @@
+// @ts-check
+import { defineConfig, envField } from "astro/config";
+
+import cloudflare from "@astrojs/cloudflare";
+
+import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
+
+// https://astro.build/config
+export default defineConfig({
+  site: import.meta.env.PUBLIC_SITE_URL,
+  adapter: cloudflare({
+    imageService: "compile",
+    platformProxy: {
+      enabled: true,
+    },
+  }),
+
+  integrations: [react()],
+  output: "server",
+
+  vite: {
+    ssr: {
+      external: ["node:buffer", "node:events", "node:stream"],
+    },
+    resolve: {
+      // @ts-ignore
+      alias: import.meta.env.PROD && {
+        "react-dom/server": "react-dom/server.edge",
+      },
+    },
+    plugins: [tailwindcss()],
+  },
+});
