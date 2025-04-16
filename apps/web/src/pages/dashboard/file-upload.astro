@@ -1,0 +1,11 @@
+---
+import LayoutDashboard from "@/layouts/LayoutDashboard.astro";
+import { PagesDashboardAudioFileUpload } from "@/components/PagesDashboardFileUpload";
+if (!Astro.locals.auth) {
+  return Astro.redirect("/login", 302);
+}
+---
+
+<LayoutDashboard>
+  <PagesDashboardAudioFileUpload initialAuth={Astro.locals.auth!} client:load />
+</LayoutDashboard>

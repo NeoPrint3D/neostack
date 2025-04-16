@@ -1,0 +1,15 @@
+{
+  "name": "@neostack/constants",
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {},
+  "packageManager": "pnpm@10.8.1",
+  "dependencies": {
+    "colorizr": "^3.0.7",
+    "@neostack/typescript-config": "workspace:*"
+  }
+}

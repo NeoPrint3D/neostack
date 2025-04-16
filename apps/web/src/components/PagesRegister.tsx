@@ -2,7 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@neo-stack/ui/components/button";
+import { Button } from "@neostack/ui/components/button";
 import {
   Card,
   CardHeader,
@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@neo-stack/ui/components/card";
+} from "@neostack/ui/components/card";
 import {
   Form,
   FormControl,
@@ -18,18 +18,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@neo-stack/ui/components/form";
-import { Input } from "@neo-stack/ui/components/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@neo-stack/ui/components/dialog";
+} from "@neostack/ui/components/form";
+import { Input } from "@neostack/ui/components/input";
 import { authClient } from "@/lib/authClient";
-// Form schemas
+import { toast } from "sonner";
+import { navigate } from "astro/virtual-modules/transitions-router.js";
+
+// Form schema
 const registerSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -42,16 +37,10 @@ const registerSchema = z
     path: ["confirmPassword"],
   });
 
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
-
 type RegisterForm = z.infer<typeof registerSchema>;
-type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export function PagesRegister() {
-  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false);
 
   // Register form
   const registerForm = useForm<RegisterForm>({
@@ -64,70 +53,54 @@ export function PagesRegister() {
     },
   });
 
-  // Forgot password form
-  const forgotPasswordForm = useForm<ForgotPasswordForm>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
   // Handlers
   const onRegisterSubmit = async (values: RegisterForm) => {
-    setIsSubmitting(true);
-    try {
-      // Replace with your registration logic
-      console.log("Registration data:", values);
-      await authClient.signUp.email({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        callbackURL: `${import.meta.env.PUBLIC_SITE_URL}/settings/profile`,
-      });
-      registerForm.reset();
-    } catch (error) {
-      registerForm.setError("root", {
-        message: "Registration failed. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsRegisterSubmitting(true);
+    await authClient.signUp.email({
+      name: values.name,
+      email: values.email,
+      password: values.password,
+      callbackURL: `${import.meta.env.PUBLIC_SITE_URL}/dashboard`,
+      fetchOptions: {
+        onSuccess: async () => {
+          toast.success("Account created! Please verify your email.");
+          registerForm.reset();
+          setIsRegisterSubmitting(false);
+          await navigate(`/verify-email?email=${values.email}`);
+        },
+        onError: (res) => {
+          const errorMessage = res?.error?.message || "Registration failed";
+          toast.error(errorMessage);
+          registerForm.setError("root", {
+            message: errorMessage,
+          });
+          setIsRegisterSubmitting(false);
+        },
+      },
+    });
   };
 
-  const onForgotPasswordSubmit = async (values: ForgotPasswordForm) => {
-    setIsSubmitting(true);
-    try {
-      // Replace with password reset logic
-      console.log("Password reset requested for:", values.email);
-      // await authClient.requestPasswordReset(values.email);
-      setIsForgotPasswordOpen(false);
-      forgotPasswordForm.reset();
-    } catch (error) {
-      forgotPasswordForm.setError("email", {
-        message: "Failed to send reset email. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: `${import.meta.env.PUBLIC_SITE_URL}/settings/profile`,
-        newUserCallbackURL: `${import.meta.env.PUBLIC_SITE_URL}`,
-      });
-    } catch (error) {
-      console.error("Google sign-in error:", error);
-      registerForm.setError("root", {
-        message: "Google sign-up failed. Please try again.",
-      });
-    }
+  const handleGoogleSignIn = () => {
+    authClient.signIn.social({
+      provider: "google",
+      callbackURL: `${import.meta.env.PUBLIC_SITE_URL}/dashboard`,
+      newUserCallbackURL: `${import.meta.env.PUBLIC_SITE_URL}`,
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Google sign-up successful!");
+        },
+        onError: (error) => {
+          console.error("Google sign-up error:", error);
+          registerForm.setError("root", {
+            message: "Google sign-up failed. Please try again.",
+          });
+        },
+      },
+    });
   };
 
   return (
-    <div className="min-h-first-page flex items-center justify-center bg-background">
+    <div className="flex justify-center items-center bg-background min-h-first-page">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Create an account</CardTitle>
@@ -143,9 +116,10 @@ export function PagesRegister() {
               type="button"
               className="w-full"
               onClick={handleGoogleSignIn}
+              disabled={isRegisterSubmitting}
             >
               <svg
-                className="mr-2 h-4 w-4"
+                className="mr-2 w-4 h-4"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
@@ -160,7 +134,7 @@ export function PagesRegister() {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t"></span>
+                <span className="border-t w-full"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
@@ -241,7 +215,7 @@ export function PagesRegister() {
                 />
 
                 {registerForm.formState.errors.root && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-destructive text-sm">
                     {registerForm.formState.errors.root.message}
                   </p>
                 )}
@@ -249,20 +223,22 @@ export function PagesRegister() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isSubmitting}
+                  disabled={isRegisterSubmitting}
                 >
-                  {isSubmitting ? "Creating account..." : "Create account"}
+                  {isRegisterSubmitting
+                    ? "Creating account..."
+                    : "Create account"}
                 </Button>
               </form>
             </Form>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-4">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             Already have an account?{" "}
             <a
               href="/login"
-              className="text-primary underline-offset-4 hover:underline"
+              className="text-primary hover:underline underline-offset-4"
             >
               Log in
             </a>

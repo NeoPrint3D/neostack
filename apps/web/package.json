@@ -1,37 +1,43 @@
 {
-  "name": "@neo-stack/web",
+  "name": "@neostack/web",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
     "dev": "dotenv -e .env.local -- astro dev",
     "build": "astro build",
-    "preview": "astro build && wrangler dev --env production",
+    "preview": "astro build && wrangler dev --env prod",
     "astro": "astro",
-    "deploy": "astro build && wrangler deploy --env production",
-    "cf-typegen": "wrangler types"
+    "deploy": "astro build --mode prod && wrangler deploy --env prod",
+    "cf-typegen": "wrangler types --env local"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.4.1",
     "@astrojs/react": "^4.2.4",
     "@hookform/resolvers": "^5.0.1",
-    "@neo-stack/api": "workspace:*",
-    "@neo-stack/database": "workspace:*",
-    "@neo-stack/ui": "workspace:*",
+    "@neostack/api": "workspace:*",
+    "@neostack/constants": "workspace:*",
+    "@neostack/database": "workspace:*",
+    "@neostack/ui": "workspace:*",
     "@tailwindcss/vite": "^4.1.3",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.2",
     "astro": "^5.6.2",
+    "better-auth": "^1.2.7",
+    "hono": "^4.7.6",
     "lucide-react": "^0.475.0",
+    "nuqs": "^2.4.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.55.0",
+    "sonner": "^2.0.3",
     "tailwindcss": "^4.1.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250414.0",
-    "@neo-stack/typescript-config": "workspace:*",
+    "@neostack/typescript-config": "workspace:*",
+    "@types/node": "^20",
     "dotenv-cli": "^8.0.0",
-    "wrangler": "^4.10.0"
+    "wrangler": "^4.11.1"
   }
 }

@@ -1,0 +1,10 @@
+---
+// pages/settings/user.astro
+import { PagesSettingsUser } from "@/components/PagesSettingsUser";
+
+if (!Astro.locals.auth) {
+  return Astro.redirect("/login", 302);
+}
+---
+
+<!-- <LayoutSettings> --><!-- <PagesSettingsUser client:load /> --><!-- </LayoutSettings> -->

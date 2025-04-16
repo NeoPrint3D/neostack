@@ -3,7 +3,7 @@ import { PagesRegister } from "@/components/PagesRegister";
 import Layout from "@/layouts/Layout.astro";
 
 if (Astro.locals.auth) {
-  return Astro.redirect("/settings/profile");
+  return Astro.redirect("/dashboard", 302);
 }
 ---
 

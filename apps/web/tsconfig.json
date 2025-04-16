@@ -8,6 +8,7 @@
     "dist"
   ],
   "compilerOptions": {
+    "strict": true,
     "types": [
       "@cloudflare/workers-types/2023-07-01"
     ],
@@ -16,7 +17,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@neo-stack/ui/*": [
+      "@neostack/ui/*": [
         "../../packages/ui/src/*"
       ]
     },

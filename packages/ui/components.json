@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@neo-stack/ui/components",
-    "utils": "@neo-stack/ui/lib/utils",
-    "hooks": "@neo-stack/ui/hooks",
-    "lib": "@neo-stack/ui/lib",
-    "ui": "@neo-stack/ui/components"
+    "components": "@neostack/ui/components",
+    "utils": "@neostack/ui/lib/utils",
+    "hooks": "@neostack/ui/hooks",
+    "lib": "@neostack/ui/lib",
+    "ui": "@neostack/ui/components"
   }
 }

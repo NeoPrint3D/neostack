@@ -9,3 +9,12 @@ declare namespace App {
     auth: Auth | null;
   }
 }
+
+interface ImportMetaEnv {
+  PUBLIC_API_URL: string;
+  PUBLIC_SITE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

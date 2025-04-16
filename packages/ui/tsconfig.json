@@ -1,9 +1,9 @@
 {
-  "extends": "@neo-stack/typescript-config/react-library.json",
+  "extends": "@neostack/typescript-config/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@neo-stack/ui/*": ["./src/*"]
+      "@neostack/ui/*": ["./src/*"]
     }
   },
   "include": ["."],

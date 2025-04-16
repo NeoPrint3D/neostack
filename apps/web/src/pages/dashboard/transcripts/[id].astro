@@ -1,0 +1,36 @@
+---
+import { PagesDashboardTranscript } from "@/components/PagesDashboardTranscript";
+import LayoutDashboard from "@/layouts/LayoutDashboard.astro";
+import { drizzle, transcriptions, eq } from "@neostack/database";
+
+// Extract parameters and environment variables
+const { id } = Astro.params;
+const { HYPERDRIVE, BUCKET } = Astro.locals.runtime.env;
+
+// Initialize database connection
+const db = drizzle(HYPERDRIVE.connectionString);
+
+// Fetch transcript record by ID
+const transcript = (
+  await db.select().from(transcriptions).where(eq(transcriptions.id, id!))
+)[0];
+
+if (!transcript) {
+  throw new Response("Transcript Not Found", { status: 404 });
+}
+
+// Attempt to fetch transcript text from bucket storage
+let transcriptText = "";
+if (transcript.transcriptPath) {
+  const transcriptFile = await BUCKET.get(transcript.srtPath!);
+  transcriptText = transcriptFile ? await transcriptFile.text() : "";
+}
+---
+
+<LayoutDashboard>
+  <PagesDashboardTranscript
+    transcript={transcript}
+    transcriptText={transcriptText}
+    client:load
+  />
+</LayoutDashboard>

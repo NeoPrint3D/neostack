@@ -10,9 +10,13 @@ import {
   organization,
 } from "better-auth/plugins";
 import Stripe from "stripe";
-import { schema } from "@neo-stack/database";
-import { drizzle } from "@neo-stack/database";
-import { AppEnv } from "..";
+import { schema } from "@neostack/database";
+import { drizzle } from "@neostack/database";
+import {
+  sendResetPasswordEmail,
+  sendVerificationEmail,
+} from "./auth/hooks/emails";
+import { AppEnv } from "@/types/AppEnv";
 
 export const createAuthClient = (
   env: AppEnv
@@ -27,7 +31,7 @@ export const createAuthClient = (
       cookiePrefix: "neostack",
       crossSubDomainCookies: {
         enabled: true,
-        domain: ".stack.neoprint3d.dev",
+        domain: `.${env.BETTER_AUTH_COOKIE_DOMAIN}`,
       },
     },
 
@@ -39,10 +43,16 @@ export const createAuthClient = (
 
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true, // Require email verification
+      requireEmailVerification: true,
+      sendResetPassword: async ({ user, url, token }, request) => {
+        await sendResetPasswordEmail(env, user, url);
+      },
     },
     emailVerification: {
-      sendVerificationEmail: async ({ user, token }) => {},
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        await sendVerificationEmail(env, user, url);
+      },
     },
     socialProviders: {
       google: {

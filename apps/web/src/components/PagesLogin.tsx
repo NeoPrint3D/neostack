@@ -2,7 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@neo-stack/ui/components/button";
+import { Button } from "@neostack/ui/components/button";
 import {
   Card,
   CardHeader,
@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@neo-stack/ui/components/card";
+} from "@neostack/ui/components/card";
 import {
   Form,
   FormControl,
@@ -18,8 +18,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@neo-stack/ui/components/form";
-import { Input } from "@neo-stack/ui/components/input";
+} from "@neostack/ui/components/form";
+import { Input } from "@neostack/ui/components/input";
 import {
   Dialog,
   DialogContent,
@@ -27,8 +27,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@neo-stack/ui/components/dialog";
+  DialogFooter,
+} from "@neostack/ui/components/dialog";
 import { authClient } from "@/lib/authClient";
+import { toast } from "sonner";
+
 // Form schemas
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -44,7 +47,8 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export function PagesLogin() {
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
+  const [isForgotSubmitting, setIsForgotSubmitting] = useState(false);
 
   // Login form
   const loginForm = useForm<LoginForm>({
@@ -64,58 +68,73 @@ export function PagesLogin() {
   });
 
   // Handlers
-  const onLoginSubmit = async (values: LoginForm) => {
-    setIsSubmitting(true);
-    try {
-      // Replace with your login logic
-      console.log("Login credentials:", values);
-      // await authClient.signIn.credentials(values);
-      loginForm.reset();
-    } catch (error) {
-      loginForm.setError("root", {
-        message: "Invalid email or password. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onLoginSubmit = (values: LoginForm) => {
+    setIsLoginSubmitting(true);
+    authClient.signIn.email({
+      email: values.email,
+      password: values.password,
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Login successful!");
+          window.location.href = "/dashboard";
+        },
+        onError: (error) => {
+          console.error("Login error:", error);
+          loginForm.setError("root", {
+            message: "Invalid email or password.",
+          });
+          setIsLoginSubmitting(false);
+        },
+      },
+    });
   };
 
-  const onForgotPasswordSubmit = async (values: ForgotPasswordForm) => {
-    setIsSubmitting(true);
-    try {
-      // Replace with password reset logic
-      console.log("Password reset requested for:", values.email);
-      // await authClient.requestPasswordReset(values.email);
-      setIsForgotPasswordOpen(false);
-      forgotPasswordForm.reset();
-    } catch (error) {
-      forgotPasswordForm.setError("email", {
-        message: "Failed to send reset email. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onForgotPasswordSubmit = (values: ForgotPasswordForm) => {
+    setIsForgotSubmitting(true);
+    authClient.forgetPassword({
+      email: values.email,
+      redirectTo: `${import.meta.env.PUBLIC_SITE_URL}/reset-password`,
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Reset link sent to your email!");
+          setIsForgotPasswordOpen(false);
+          forgotPasswordForm.reset();
+          setIsForgotSubmitting(false);
+        },
+        onError: (error) => {
+          console.error("Forgot password error:", error);
+          forgotPasswordForm.setError("email", {
+            message: "Failed to send reset email. Please try again.",
+          });
+          setIsForgotSubmitting(false);
+        },
+      },
+    });
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: `${import.meta.env.PUBLIC_SITE_URL}`,
-      });
-    } catch (error) {
-      console.error("Google sign-in error:", error);
-      loginForm.setError("root", {
-        message: "Google sign-in failed. Please try again.",
-      });
-    }
+  const handleGoogleSignIn = () => {
+    authClient.signIn.social({
+      provider: "google",
+      callbackURL: `${import.meta.env.PUBLIC_SITE_URL}`,
+      fetchOptions: {
+        onSuccess: () => {
+          toast.success("Google sign-in successful!");
+        },
+        onError: (error) => {
+          console.error("Google sign-in error:", error);
+          loginForm.setError("root", {
+            message: "Google sign-in failed. Please try again.",
+          });
+        },
+      },
+    });
   };
 
   return (
-    <div className="min-h-first-page flex items-center justify-center bg-background">
+    <div className="flex justify-center items-center bg-background min-h-first-page">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Sign in</CardTitle>
+          <CardTitle className="text-2xl">Log in</CardTitle>
           <CardDescription>
             Enter your credentials to access your account
           </CardDescription>
@@ -128,9 +147,10 @@ export function PagesLogin() {
               type="button"
               className="w-full"
               onClick={handleGoogleSignIn}
+              disabled={isLoginSubmitting}
             >
               <svg
-                className="mr-2 h-4 w-4"
+                className="mr-2 w-4 h-4"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
@@ -145,7 +165,7 @@ export function PagesLogin() {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t"></span>
+                <span className="border-t w-full"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
@@ -196,7 +216,7 @@ export function PagesLogin() {
                 />
 
                 {loginForm.formState.errors.root && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-destructive text-sm">
                     {loginForm.formState.errors.root.message}
                   </p>
                 )}
@@ -204,22 +224,22 @@ export function PagesLogin() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isSubmitting}
+                  disabled={isLoginSubmitting}
                 >
-                  {isSubmitting ? "Signing in..." : "Sign in"}
+                  {isLoginSubmitting ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
             </Form>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-4">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             Don't have an account?{" "}
             <a
               href="/register"
-              className="text-primary underline-offset-4 hover:underline"
+              className="text-primary hover:underline underline-offset-4"
             >
-              Sign up
+              Create account
             </a>
           </div>
 
@@ -237,9 +257,9 @@ export function PagesLogin() {
                 Forgot your password?
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Reset Password</DialogTitle>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader className="space-y-2">
+                <DialogTitle className="text-2xl">Reset Password</DialogTitle>
                 <DialogDescription>
                   Enter your email to receive a password reset link.
                 </DialogDescription>
@@ -249,7 +269,7 @@ export function PagesLogin() {
                   onSubmit={forgotPasswordForm.handleSubmit(
                     onForgotPasswordSubmit
                   )}
-                  className="space-y-4"
+                  className="space-y-6"
                 >
                   <FormField
                     control={forgotPasswordForm.control}
@@ -268,13 +288,19 @@ export function PagesLogin() {
                       </FormItem>
                     )}
                   />
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send reset link"}
-                  </Button>
+                  <DialogFooter className="flex justify-between gap-4">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => setIsForgotPasswordOpen(false)}
+                      disabled={isForgotSubmitting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isForgotSubmitting}>
+                      {isForgotSubmitting ? "Sending..." : "Send reset link"}
+                    </Button>
+                  </DialogFooter>
                 </form>
               </Form>
             </DialogContent>

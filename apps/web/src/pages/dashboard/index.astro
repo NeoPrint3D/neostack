@@ -1,0 +1,12 @@
+---
+import { PagesDashboard } from "@/components/PagesDashboard";
+import LayoutDashboard from "@/layouts/LayoutDashboard.astro";
+
+if (!Astro.locals.auth) {
+  return Astro.redirect("/login", 302);
+}
+---
+
+<LayoutDashboard pageName="Home">
+  <PagesDashboard client:load />
+</LayoutDashboard>

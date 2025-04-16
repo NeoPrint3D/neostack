@@ -19,7 +19,35 @@
   },
 
   "env": {
-    "production": {
+    "local": {
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "fa57d5af4d834aba938051235f0d7484",
+          "localConnectionString": "postgresql://postgres:mysecretpassword@localhost:5432/postgres",
+        },
+        
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "neostack-audio-bucket",
+        },
+      ],
+    },
+    "prod": {
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "fa57d5af4d834aba938051235f0d7484",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "neostack-audio-bucket",
+        },
+      ],
       "routes": [
         {
           "pattern": "www.stack.neoprint3d.dev",

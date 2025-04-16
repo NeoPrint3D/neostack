@@ -1,21 +1,36 @@
 {
-  "name": "@neo-stack/api",
+  "name": "@neostack/api",
+  "exports": {
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    }
+  },
   "scripts": {
+    "dev": "pnpm --filter @neostack/api --parallel \"/^local:.*/\"",
     "local:tsc": "tsc -p tsconfig.build.json --watch",
     "local:dev": "wrangler dev --test-scheduled --env local",
-    "deploy": "wrangler deploy --minify --env production",
+    "deploy": "wrangler deploy --minify --env prod",
     "auth:generate": "npx @better-auth/cli generate --config ./src/lib/auth.ts --output ../../packages/database/src/schema/auth.ts"
   },
   "dependencies": {
     "@better-auth/stripe": "^1.2.7",
-    "@neo-stack/database": "workspace:*",
+    "@hono/zod-validator": "^0.4.3",
+    "@neostack/constants": "workspace:*",
+    "@neostack/database": "workspace:*",
+    "@neostack/email": "workspace:*",
     "better-auth": "^1.2.7",
     "hono": "^4.7.6",
-    "stripe": "^18.0.0"
+    "nanoid": "^5.1.5",
+    "react": "^19.1.0",
+    "resend": "^4.2.0",
+    "stripe": "^18.0.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^4.20250415.0",
+    "@types/react": "^19.1.2",
     "typescript": "^5.8.3",
-    "wrangler": "^4.4.0"
+    "wrangler": "^4.11.1"
   }
 }

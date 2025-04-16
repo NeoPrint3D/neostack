@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "composite": false,
+      "skipLibCheck": true,
+      "strict": true,
+      "noEmit": true,
+      "strictNullChecks": true
+    },
+    "include": ["src"],
+    "exclude": ["node_modules"]
+  }
+  

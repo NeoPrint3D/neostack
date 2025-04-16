@@ -13,6 +13,10 @@ export default defineConfig({
     imageService: "compile",
     platformProxy: {
       enabled: true,
+      environment: "local",
+      persist: {
+        path:"../api/.wrangler/state/v3"
+      }
     },
   }),
 

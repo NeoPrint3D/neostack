@@ -1,0 +1,17 @@
+---
+import { LayoutDashboard as LayoutDashboardReact } from "@/components/LayoutDashboard";
+import LayoutBase from "./LayoutBase.astro";
+
+const { pageName } = Astro.props;
+---
+
+<LayoutBase>
+  <LayoutDashboardReact
+    pageName={pageName}
+    initialAuth={Astro.locals.auth}
+    initialUrl={Astro.url.toString()}
+    client:load
+  >
+    <slot />
+  </LayoutDashboardReact>
+</LayoutBase>

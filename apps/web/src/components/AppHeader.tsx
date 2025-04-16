@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Button } from "@neo-stack/ui/components/button";
+import { useEffect, useState } from "react";
+import { Button } from "@neostack/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,110 +7,99 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@neo-stack/ui/components/dropdown-menu";
+} from "@neostack/ui/components/dropdown-menu";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@neo-stack/ui/components/avatar";
+} from "@neostack/ui/components/avatar";
 import { Menu, LogOut, Settings, LayoutDashboard } from "lucide-react";
-import { authClient } from "@/lib/authClient";
-
+import { authClient, handleSignOut } from "@/lib/authClient";
+import { toast } from "sonner";
+import { deriveUserData } from "@/utils/deriveUserData";
 type HeaderProps = {
   initialAuth: Auth | null;
 };
 
 export function AppHeader({ initialAuth }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      await authClient.signOut();
-      setIsMenuOpen(false);
-      window.location.reload();
-    } catch (error) {
-      console.error("Sign-out error:", error);
-    }
-  };
-
+  const userData = deriveUserData(initialAuth);
   const isAuthenticated = !!initialAuth?.user;
-  const userName =
-    initialAuth?.user?.name ||
-    initialAuth?.user?.email?.split("@")[0] ||
-    "User";
-  const userImage = initialAuth?.user?.image;
-  const userInitials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
-    <header className="bg-background border-b sticky top-0 z-50 ">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-4">
+    <header className="top-0 z-50 sticky bg-background border-b">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <a
             href="/"
-            className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60"
+            className="bg-clip-text bg-gradient-to-r from-primary to-primary/60 font-bold text-transparent text-2xl"
           >
-            MyApp
+            NeoStack
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6"></nav>
+          <nav className="hidden sm:flex items-center space-x-6"></nav>
 
           {/* Desktop Auth Controls */}
-          <div className="hidden md:flex items-center space-x-3">
-            {isAuthenticated ? (
+          <div className="hidden sm:flex items-center space-x-3">
+            {userData ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
-                    <Avatar className="h-9 w-9 ring-2 ring-primary/20 hover:ring-primary/40">
+                    <Avatar className="ring-border ring-1 hover:ring-primary/40 size-8">
                       <AvatarImage
-                        src={userImage || undefined}
-                        alt={userName}
+                        src={userData.avatar || undefined}
+                        alt={userData.name}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-muted">
-                        {userInitials}
+                      <AvatarFallback className="bg-muted font-semibold text-muted-foreground">
+                        {userData.initials}
                       </AvatarFallback>
                     </Avatar>
+                    <span className="sr-only">Toggle user menu</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <span className="font-semibold">{userName}</span>
-                    <p className="text-sm text-muted-foreground">
-                      {initialAuth?.user?.email}
-                    </p>
+                <DropdownMenuContent align="end" className="rounded-lg w-60">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex items-center gap-3 p-1">
+                      <Avatar className="rounded-md size-9">
+                        <AvatarImage
+                          src={userData.avatar || undefined}
+                          alt={userData.name}
+                        />
+                        <AvatarFallback className="bg-muted rounded-md font-semibold text-muted-foreground">
+                          {userData.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 grid min-w-0 text-sm text-left leading-tight">
+                        <span className="font-semibold truncate">
+                          {userData.name}
+                        </span>
+                        {/* Conditionally show email */}
+                        {userData.email !== "no-email@example.com" && (
+                          <span className="text-muted-foreground text-xs truncate">
+                            {userData.email}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <a
-                      href="/dashboard"
-                      className="flex items-center w-full cursor-pointer"
-                    >
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <a
-                      href="/profile"
-                      className="flex items-center w-full cursor-pointer"
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Profile
+                  {/* Quick Links */}
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <a href="/dashboard" className="flex items-center w-full">
+                      <LayoutDashboard className="mr-2 size-4" />
+                      <span>Dashboard</span>
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {/* Sign Out */}
                   <DropdownMenuItem
                     onClick={handleSignOut}
-                    className="text-destructive"
+                    className="focus:bg-destructive/10 text-destructive focus:text-destructive cursor-pointer"
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    <LogOut className="mr-2 size-4" />
+                    <span>Sign Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -132,30 +121,28 @@ export function AppHeader({ initialAuth }: HeaderProps) {
             size="icon"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
-            className="md:hidden rounded-full"
+            className="sm:hidden rounded-full"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="w-6 h-6" />
           </Button>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="sm:hidden py-4 border-t">
             <nav className="flex flex-col space-y-2 px-4">
-              {isAuthenticated && (
-                <a
-                  href="/dashboard"
-                  className="text-foreground hover:text-primary py-2 font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Dashboard
-                </a>
-              )}
               {isAuthenticated ? (
                 <>
                   <a
+                    href="/dashboard"
+                    className="py-2 font-medium text-foreground hover:text-primary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </a>
+                  <a
                     href="/profile"
-                    className="text-foreground hover:text-primary py-2 font-medium"
+                    className="py-2 font-medium text-foreground hover:text-primary"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Profile
@@ -165,7 +152,7 @@ export function AppHeader({ initialAuth }: HeaderProps) {
                     className="justify-start text-destructive"
                     onClick={handleSignOut}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="mr-2 w-4 h-4" />
                     Sign Out
                   </Button>
                 </>

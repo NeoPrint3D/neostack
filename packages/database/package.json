@@ -1,5 +1,5 @@
 {
-  "name": "@neo-stack/database",
+  "name": "@neostack/database",
   "version": "1.0.0",
   "description": "",
   "exports": {
@@ -10,8 +10,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "local:db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
+    "local:db:studio": "dotenv -e .env.local -- drizzle-kit studio",
+    "prod:db:studio": "dotenv -e .env.prod -- drizzle-kit studio",
+    "prod:db:migrate": "dotenv -e .env.prod -- drizzle-kit migrate"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "dotenv-cli": "^8.0.0",
     "drizzle-kit": "^0.30.6",
     "typescript": "^5.8.3"
   },

@@ -1,0 +1,26 @@
+{
+  "name": "@neostack/email",
+  "version": "1.1.0",
+  "scripts": {
+    "build": "email build",
+    "dev": "email dev",
+    "export": "email export"
+  },
+  "exports": {
+    "./*": "./emails/*.tsx"
+  },
+  "workspaces": [
+    ".react-email"
+  ],
+  "dependencies": {
+    "@neostack/constants": "workspace:*",
+    "@react-email/components": "^0.0.36",
+    "react-dom": "19.1.0",
+    "react": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.1",
+    "@types/react-dom": "19.1.2",
+    "react-email": "^4.0.7"
+  }
+}
