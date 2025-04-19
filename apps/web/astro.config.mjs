@@ -9,18 +9,18 @@ import tailwindcss from "@tailwindcss/vite";
 // https://astro.build/config
 export default defineConfig({
   site: import.meta.env.PUBLIC_SITE_URL,
+  devToolbar: { enabled: false },
   adapter: cloudflare({
     imageService: "compile",
     platformProxy: {
       enabled: true,
       environment: "local",
       persist: {
-        path:"../api/.wrangler/state/v3"
-      }
+        path: "../api/.wrangler/state/v3",
+      },
     },
   }),
 
-  integrations: [react()],
   output: "server",
 
   vite: {
@@ -35,4 +35,5 @@ export default defineConfig({
     },
     plugins: [tailwindcss()],
   },
+  integrations: [react()],
 });

@@ -14,7 +14,7 @@ export const transcriptions = pgTable("transcriptions", {
   title: text("title").notNull(),
   summary: text("summary").notNull(),
   audioPath: text("audio_path").notNull(),
-  srtPath: text("srt_path"),
+  subtitlePath: text("subtitle_path"),
   transcriptPath: text("transcript_path"),
   userId: text("user_id")
     .notNull()

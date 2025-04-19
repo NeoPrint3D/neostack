@@ -12,6 +12,7 @@ export const api = (...args: Parameters<typeof hc>): ApiClient =>
 
 export type BetterAuthInstance = Awaited<ReturnType<typeof createAuthClient>>;
 export { TranscriptionData } from "@/types/AppEnv";
+export type Notification = z.infer<typeof notificationSchema>;
 
 export const notificationSchema = z.object({
   id: z.string(),
@@ -21,5 +22,3 @@ export const notificationSchema = z.object({
   title: z.string(),
   content: z.string(),
 });
-
-export type Notification = z.infer<typeof notificationSchema>;

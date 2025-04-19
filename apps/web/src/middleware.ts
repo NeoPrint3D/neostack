@@ -7,6 +7,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       headers: context.request.headers,
     },
   });
+  console.log("fetching user");
   if (data && !error) {
     context.locals.auth = data;
   } else {

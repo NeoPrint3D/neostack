@@ -1,8 +1,8 @@
 ---
 import { LayoutDashboard as LayoutDashboardReact } from "@/components/LayoutDashboard";
+import { Toaster } from "@neostack/ui/components/sonner";
 import LayoutBase from "./LayoutBase.astro";
-
-const { pageName } = Astro.props;
+const { pageName, customPadding } = Astro.props;
 ---
 
 <LayoutBase>
@@ -10,8 +10,12 @@ const { pageName } = Astro.props;
     pageName={pageName}
     initialAuth={Astro.locals.auth}
     initialUrl={Astro.url.toString()}
+    customPadding={customPadding}
     client:load
+    transition:animate="none"
   >
-    <slot />
+    <div transition:animate="fade">
+      <slot />
+    </div>
   </LayoutDashboardReact>
 </LayoutBase>

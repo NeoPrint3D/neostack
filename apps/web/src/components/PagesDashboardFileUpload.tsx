@@ -95,7 +95,7 @@ export function PagesDashboardAudioFileUpload({
 
   // Handle single file upload
   async function onSingleSubmit(values: z.infer<typeof singleUploadSchema>) {
-    const response = await apiClient.v1.transcribe.$post({
+    const response = await apiClient.v1.transcripts.process.$post({
       form: {
         audio: values.audioFile,
       },
@@ -112,7 +112,7 @@ export function PagesDashboardAudioFileUpload({
   // Handle batch file upload
   async function onBatchSubmit(values: z.infer<typeof batchUploadSchema>) {
     try {
-      const response = await apiClient.v1.transcribe.$post({
+      const response = await apiClient.v1.transcripts.process.$post({
         form: {
           audio: values.audioFiles,
         },

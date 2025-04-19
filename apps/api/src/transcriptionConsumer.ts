@@ -1,4 +1,4 @@
-import { transcriptionChunks, transcriptions } from "@neostack/database"; // Adjust path as needed
+import { transcriptionChunks, transcriptions } from "@neostack/database";
 import { nanoid } from "nanoid";
 import { TranscriptionData, Notification } from "./client";
 import { db } from "./lib/database";
@@ -6,21 +6,21 @@ import { AppEnv } from "./types/AppEnv";
 
 // Interface definitions
 interface VTTLine {
-  startTime: number; // in seconds
-  endTime: number; // in seconds
+  startTime: number; // in milliseconds
+  endTime: number; // in milliseconds
   text: string;
 }
 
 interface Sentence {
   text: string;
-  startTime: number; // in seconds
-  endTime: number; // in seconds
+  startTime: number; // in milliseconds
+  endTime: number; // in milliseconds
 }
 
 interface Chunk {
   text: string;
-  startTime: number; // in seconds
-  endTime: number; // in seconds
+  startTime: number; // in milliseconds
+  endTime: number; // in milliseconds
 }
 
 // Parse VTT file and extract cues
@@ -36,7 +36,7 @@ function parseVTT(vttContent: string): VTTLine[] {
 
       const parts = cleanedTime
         .split(/[:.]/)
-        .map((part) => parseFloat(part.padStart(2, "0")));
+        .map((part) => parseInt(part.padStart(2, "0")));
       let hours = 0,
         minutes = 0,
         seconds = 0,
@@ -51,10 +51,12 @@ function parseVTT(vttContent: string): VTTLine[] {
         throw new Error("Invalid time format");
       }
 
-      return Math.round(hours * 3600 + minutes * 60 + seconds + millis / 1000);
+      return hours * 3600000 + minutes * 60000 + seconds * 1000 + millis;
     } catch (e) {
       throw new Error(
-        `Failed to parse time: ${time} - ${e instanceof Error ? e.message : String(e)}`
+        `Failed to parse time: ${time} - ${
+          e instanceof Error ? e.message : String(e)
+        }`
       );
     }
   };
@@ -76,7 +78,9 @@ function parseVTT(vttContent: string): VTTLine[] {
         currentCue = { startTime: start, endTime: end, text: "" };
       } catch (e) {
         console.warn(
-          `Invalid timestamp at line ${i + 1}: ${line} - ${e instanceof Error ? e.message : String(e)}`
+          `Invalid timestamp at line ${i + 1}: ${line} - ${
+            e instanceof Error ? e.message : String(e)
+          }`
         );
         continue;
       }
@@ -102,6 +106,16 @@ function parseVTT(vttContent: string): VTTLine[] {
   return cues;
 }
 
+// Format time in milliseconds to HH:MM:SS
+function formatTime(ms: number): string {
+  const hours = Math.floor(ms / 3600000);
+  const minutes = Math.floor((ms % 3600000) / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  return `[Time: ${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}]`;
+}
+
 // Reconstruct sentences from word-level VTT cues
 function reconstructSentences(cues: VTTLine[]): Sentence[] {
   const sentences: Sentence[] = [];
@@ -110,7 +124,7 @@ function reconstructSentences(cues: VTTLine[]): Sentence[] {
     startTime: 0,
     endTime: 0,
   };
-  const timeGapThreshold = 0.5; // Seconds to consider a sentence break
+  const timeGapThreshold = 500; // Milliseconds to consider a sentence break
   const minWordsPerSentence = 3; // Minimum words to form a sentence
 
   for (let i = 0; i < cues.length; i++) {
@@ -138,76 +152,52 @@ function reconstructSentences(cues: VTTLine[]): Sentence[] {
       cue.text.toLowerCase().includes("next line")
     ) {
       if (currentSentence.text && currentSentence.text.trim().length > 0) {
-        sentences.push(currentSentence as Sentence);
+        const formattedText = currentSentence.text
+          .split("next line")
+          .map((part, index) => {
+            if (index === 0 && part.trim()) {
+              return part.trim();
+            }
+            return part.trim();
+          })
+          .filter((part) => part)
+          .join("\n");
+        sentences.push({
+          ...currentSentence,
+          text: formattedText,
+        } as Sentence);
       }
       currentSentence = { text: "", startTime: 0, endTime: 0 };
     }
   }
 
   if (currentSentence.text?.trim()) {
-    sentences.push(currentSentence as Sentence);
+    const formattedText = currentSentence.text
+      .split("next line")
+      .map((part, index) => {
+        if (index === 0 && part.trim()) {
+          return part.trim();
+        }
+        return part.trim();
+      })
+      .filter((part) => part)
+      .join("\n");
+    sentences.push({
+      ...currentSentence,
+      text: formattedText,
+    } as Sentence);
   }
 
   console.log(`Reconstructed ${sentences.length} sentences`);
   return sentences.filter((s) => s.text.trim().length > 0);
 }
 
-// Group sentences into chunks with timestamps
-function chunkSentences(
-  sentences: Sentence[],
-  minSentences: number = 5,
-  maxSentences: number = 15,
-  paragraphTimeGap: number = 1.0
-): Chunk[] {
-  const chunks: Chunk[] = [];
-  let currentChunk: Sentence[] = [];
-  let paragraphCount = 0;
-  const targetParagraphs = 3; // Aim for 1–3 paragraphs per chunk
-
-  for (let i = 0; i < sentences.length; i++) {
-    const currentSentence = sentences[i];
-    currentChunk.push(currentSentence);
-
-    const nextSentence = sentences[i + 1];
-    const isLastSentence = i === sentences.length - 1;
-    const timeGap = nextSentence
-      ? nextSentence.startTime - currentSentence.endTime
-      : 0;
-    const isParagraphBreak = currentSentence.text
-      .toLowerCase()
-      .includes("next line");
-
-    // Increment paragraph count on paragraph breaks
-    if (isParagraphBreak || timeGap > paragraphTimeGap) {
-      paragraphCount++;
-    }
-
-    // Conditions to end a chunk
-    if (
-      isLastSentence ||
-      currentChunk.length >= maxSentences ||
-      (paragraphCount >= targetParagraphs &&
-        currentChunk.length >= minSentences) ||
-      (isParagraphBreak && paragraphCount >= 1)
-    ) {
-      if (currentChunk.length > 0) {
-        const chunkText = currentChunk.map((s) => s.text).join(" ");
-        const startTime = currentChunk[0].startTime;
-        const endTime = currentChunk[currentChunk.length - 1].endTime;
-        chunks.push({ text: chunkText, startTime, endTime });
-      }
-      currentChunk = [];
-      paragraphCount = 0;
-    }
-  }
-
-  // Handle remaining sentences
-  if (currentChunk.length > 0) {
-    const chunkText = currentChunk.map((s) => s.text).join(" ");
-    const startTime = currentChunk[0].startTime;
-    const endTime = currentChunk[currentChunk.length - 1].endTime;
-    chunks.push({ text: chunkText, startTime, endTime });
-  }
+function chunkSentences(sentences: Sentence[]): Chunk[] {
+  const chunks: Chunk[] = sentences.map((sentence) => ({
+    text: sentence.text,
+    startTime: sentence.startTime,
+    endTime: sentence.endTime,
+  }));
 
   console.log(`Generated ${chunks.length} chunks`);
   return chunks;
@@ -264,7 +254,7 @@ export async function transcriptionConsumer(
     // Generate summary and title
     const summaryPrompt = `
 Summarize the following text in 2-3 sentences, focusing only on key factual details such as dates, locations, people, events, or other objective information. Do not include opinions, analysis, or sensitive personal details. The text is a transcription of a factual report or conversation:
-      ${whisperOutput.text}
+      ${whisperOutput.text} SUMMARY ONLY NO OTHER EXTRA WORDS
     `;
     const llamaOutputSummary = (await env.AI.run(
       "@cf/meta/llama-3.2-1b-instruct",
@@ -276,7 +266,7 @@ Summarize the following text in 2-3 sentences, focusing only on key factual deta
 
     const titlePrompt = `
 Generate a clear and concise title (10-15 words) for the following summary, capturing the main factual topic, such as important dates, locations, people, or events. Avoid including opinions, analysis, or sensitive personal details:
-      ${llamaOutputSummary.response}
+      ${llamaOutputSummary.response} TITLE ONLY NO OTHER EXTRA WORDS
     `;
     const llamaOutputTitle = (await env.AI.run(
       "@cf/meta/llama-3.2-1b-instruct",
@@ -287,12 +277,20 @@ Generate a clear and concise title (10-15 words) for the following summary, capt
     )) as { response: string };
 
     // Save transcript files
-    const transcriptPath = `transcripts/${userId}/transcript/${transcriptId}.txt`;
-    const vttPath = `transcripts/${userId}/transcript/${transcriptId}.vtt`;
+    const transcriptPath = `transcriptions/${userId}/${transcriptId}/transcript.txt`;
+    const vttPath = `transcriptions/${userId}/${transcriptId}/subtitles.vtt`;
 
     await Promise.all([
-      env.BUCKET.put(transcriptPath, whisperOutput.text),
-      env.BUCKET.put(vttPath, whisperOutput.vtt),
+      env.BUCKET.put(transcriptPath, whisperOutput.text, {
+        httpMetadata: {
+          contentType: "text/plain",
+        },
+      }),
+      env.BUCKET.put(vttPath, whisperOutput.vtt, {
+        httpMetadata: {
+          contentType: "text/vtt",
+        },
+      }),
     ]);
 
     // Process VTT and create chunks
@@ -331,7 +329,7 @@ Generate a clear and concise title (10-15 words) for the following summary, capt
             },
           ];
         } else {
-          chunks = chunkSentences(sentences, 5, 15, 1.0);
+          chunks = chunkSentences(sentences);
           if (chunks.length === 0) {
             console.warn("No chunks generated, falling back to single chunk");
             chunks = [
@@ -349,7 +347,9 @@ Generate a clear and concise title (10-15 words) for the following summary, capt
     // Create chunks and embeddings
     const chunkInserts = await Promise.all(
       chunks.map(async (chunk, index) => {
-        const chunkEmbedding = (await env.AI.run("@cf/baai/bge-m3", {
+        // Prepend time to chunk text before embedding
+
+        const chunkEmbedding = (await env.AI.run("@cf/baai/bge-large-en-v1.5", {
           text: chunk.text,
         })) as { data: number[][] };
 
@@ -374,7 +374,7 @@ Generate a clear and concise title (10-15 words) for the following summary, capt
         title: llamaOutputTitle.response || "Untitled Transcription",
         summary: llamaOutputSummary.response || "No summary available",
         audioPath,
-        srtPath: vttPath,
+        subtitlePath: vttPath,
         transcriptPath,
         createdAt: new Date(),
         updatedAt: new Date(),

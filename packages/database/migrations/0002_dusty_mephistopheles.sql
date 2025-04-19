@@ -1,0 +1,1 @@
+ALTER TABLE "transcriptions" RENAME COLUMN "srt_path" TO "subtitle_path";

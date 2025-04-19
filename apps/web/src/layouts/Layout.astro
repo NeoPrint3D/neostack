@@ -3,7 +3,7 @@ import { AppHeader } from "@/components/AppHeader";
 import LayoutBase from "./LayoutBase.astro";
 ---
 
-<LayoutBase>
+<LayoutBase transition:animate="none">
   <AppHeader client:load initialAuth={Astro.locals.auth} />
   <slot />
 </LayoutBase>

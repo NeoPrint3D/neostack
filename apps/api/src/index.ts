@@ -3,12 +3,8 @@ import { createAuthClient } from "@/lib/auth";
 import { appInfo } from "@neostack/constants";
 import { AppContext, AppEnv, TranscriptionData } from "@/types/AppEnv"; // Assuming types are correctly placed
 import { allowBrowser } from "./middleware/allowBrowser";
-import { transcriptionRouter } from "./routes/transcription"; // Assume this route handles enqueueing
+import { transcriptionRouter } from "./routes/transcript"; // Assume this route handles enqueueing
 import { notificationRouter } from "./routes/notifications";
-import { Notification } from "./client";
-import { transcriptionChunks, transcriptions } from "@neostack/database";
-import { db } from "./lib/database";
-import { nanoid } from "nanoid";
 import { transcriptionConsumer } from "./transcriptionConsumer";
 
 export const app = new Hono<AppContext>()

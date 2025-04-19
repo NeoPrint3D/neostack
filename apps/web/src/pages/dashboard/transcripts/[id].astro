@@ -7,10 +7,8 @@ import { drizzle, transcriptions, eq } from "@neostack/database";
 const { id } = Astro.params;
 const { HYPERDRIVE, BUCKET } = Astro.locals.runtime.env;
 
-// Initialize database connection
 const db = drizzle(HYPERDRIVE.connectionString);
 
-// Fetch transcript record by ID
 const transcript = (
   await db.select().from(transcriptions).where(eq(transcriptions.id, id!))
 )[0];
@@ -18,19 +16,8 @@ const transcript = (
 if (!transcript) {
   throw new Response("Transcript Not Found", { status: 404 });
 }
-
-// Attempt to fetch transcript text from bucket storage
-let transcriptText = "";
-if (transcript.transcriptPath) {
-  const transcriptFile = await BUCKET.get(transcript.srtPath!);
-  transcriptText = transcriptFile ? await transcriptFile.text() : "";
-}
 ---
 
-<LayoutDashboard>
-  <PagesDashboardTranscript
-    transcript={transcript}
-    transcriptText={transcriptText}
-    client:load
-  />
+<LayoutDashboard customPadding="p-0!">
+  <PagesDashboardTranscript transcript={transcript} client:load />
 </LayoutDashboard>

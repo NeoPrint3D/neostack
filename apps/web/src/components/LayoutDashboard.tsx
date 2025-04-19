@@ -62,6 +62,8 @@ import {
   Users,
   AudioLines,
   Home,
+  File,
+  Scroll,
 } from "lucide-react";
 import { handleSignOut } from "@/lib/authClient";
 import { cn } from "@neostack/ui/lib/utils";
@@ -102,6 +104,7 @@ interface LayoutDashboardProps {
   initialAuth: Auth | null;
   pageName: string;
   initialUrl: string;
+  customPadding?: string;
 }
 
 // --- Helper Functions ---
@@ -350,18 +353,14 @@ function NavMain({
                           className={cn(
                             "group/button text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
                             isPathActive(currentPath, subItem.url) &&
-                              "text-sidebar-primary-foreground bg-sidebar-primary"
+                              "text-sidebar-primary-foreground bg-sidebar-primary hover:bg-primary/80 hover:text-sidebar-primary-foreground"
                           )}
                         >
                           <a href={subItem.url} className="flex items-center">
                             {subItem.icon && (
                               <subItem.icon
-                                className="group-hover/button:stroke-sidebar-accent-foreground mr-2 size-4 shrink-0"
-                                color={
-                                  isPathActive(currentPath, subItem.url)
-                                    ? "var(--sidebar-primary-foreground)"
-                                    : "currentColor"
-                                }
+                                className="mr-2 size-4 shrink-0"
+                                color="var(--sidebar-primary-foreground)"
                               />
                             )}
                             <span className="truncate">{subItem.title}</span>
@@ -486,6 +485,11 @@ const navMainData: NavMainItemData[] = [
         url: "/dashboard/file-upload",
         icon: FileUp,
       },
+      {
+        title: "Transcripts",
+        url: "/dashboard/transcripts",
+        icon: Scroll,
+      },
     ],
   },
 ];
@@ -495,6 +499,7 @@ export function LayoutDashboard({
   pageName,
   initialAuth,
   initialUrl,
+  customPadding,
 }: LayoutDashboardProps) {
   const userData = deriveUserData(initialAuth);
 
@@ -514,7 +519,14 @@ export function LayoutDashboard({
         </Sidebar>
         <div className="flex flex-col flex-1">
           <DashboardHeader pageName={pageName} />
-          <main className="flex-1 p-4 md:p-6 overflow-y-auto">{children}</main>
+          <main
+            className={cn(
+              "flex-1 overflow-y-auto",
+              customPadding ? customPadding : "md:p-6 p-4 "
+            )}
+          >
+            {children}
+          </main>
         </div>
       </div>
     </SidebarProvider>
